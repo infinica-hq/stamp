@@ -4,7 +4,11 @@ import { useAccount, useConnect, useSignMessage } from "wagmi";
 
 function App() {
   useEffect(() => {
-    sdk.actions.ready();
+    const id = setTimeout(() => {
+      sdk.actions.ready();
+    }, 3 * 1000);
+
+    return () => clearTimeout(id);
   }, []);
 
   return (
