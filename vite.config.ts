@@ -3,7 +3,7 @@ import { defineConfig } from "vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-	base: "/fc-hello-world",
+	base: "/",
   plugins: [react()],
   server: {
     allowedHosts: true,
