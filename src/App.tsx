@@ -13,7 +13,7 @@ function App() {
 
   return (
     <>
-      <div>Mini App + Vite + TS + React + Wagmi</div>
+      <div>Hello World</div>
       <ConnectMenu />
     </>
   );
