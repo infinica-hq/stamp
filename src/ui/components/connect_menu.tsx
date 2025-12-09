@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
 import { useConnection, useConnect, useConnectors } from "wagmi";
 import { SignButton } from "./sign_button";
 import { useSignedProof } from "../../state/signedProof";
+import { useTruncatedSignature, useTruncatedAddress, useEphemeralFlag } from "../../hooks/useUtils";
 
 export function ConnectMenu() {
-  const [proofCopied, setProofCopied] = useState(false);
   const { isConnected, address } = useConnection();
   const { connect, isPending, error, status } = useConnect();
   const connectors = useConnectors();
@@ -51,22 +51,11 @@ export function ConnectMenu() {
     }
   };
 
-  const truncatedAddress = useMemo(() => {
-    if (!address) {
-      return "";
-    }
-    if (address.length <= 8) {
-      return address;
-    }
-    return `${address.slice(0, 4)}…${address.slice(-4)}`;
-  }, [address]);
 
-  const truncatedSignature = useMemo(() => {
-    if (!proof?.signature) {
-      return "";
-    }
-    return `${proof?.signature.slice(0, 10)}…${proof?.signature.slice(-10)}`;
-  }, [proof?.signature]);
+  const { value: proofCopied, trigger: triggerProofCopied } = useEphemeralFlag(500);
+  const truncatedAddress = useTruncatedAddress(address);
+
+  const truncatedSignature = useTruncatedSignature(proof?.signature);
 
   const handleAddressClick = () => {
     if (!address) {
@@ -171,8 +160,7 @@ export function ConnectMenu() {
             <br />
             <code onClick={() => {
               navigator.clipboard.writeText(proof.signature);
-              setProofCopied(true);
-              setTimeout(() => setProofCopied(false), 500);
+              triggerProofCopied();
             }}
               className="cursor-pointer"
             >{proofCopied ? "Copied to clipboard" : truncatedSignature}</code>

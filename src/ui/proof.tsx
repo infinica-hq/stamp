@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { verifyMessage } from "viem";
 import { useSignedProof } from "../state/signedProof";
 import { useDisconnect } from "wagmi";
+import { useEphemeralFlag } from "../hooks/useUtils";
 
 
 type SharedPing = {
@@ -15,7 +16,8 @@ type SharedPing = {
 export function Proof({ summary = false }) {
   const { proof, setProof } = useSignedProof();
   const [now, setNow] = useState(() => new Date());
-  const [justCopied, setJustCopied] = useState(false);
+  const { value: justCopied, trigger: setJustCopied } = useEphemeralFlag(2000);
+
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -127,8 +129,7 @@ Link: ${shareUrl}`;
     try {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(shareText);
-        setJustCopied(true);
-        setTimeout(() => setJustCopied(false), 2000);
+        setJustCopied();
       } else {
         window.prompt("Copy this link:", shareText);
       }
