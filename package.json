@@ -1,7 +1,8 @@
 {
-  "name": "hello-world",
+  "name": "proof-ping",
+  "description": "Share a timestamped proof of farcaster account ownership.",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "homepage": "https://infinica-hq.github.io/hello-world/",
   "scripts": {

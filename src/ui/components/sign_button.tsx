@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { hashMessage } from "viem";
 import { useSignMessage } from "wagmi";
+import { useNavigate } from "react-router-dom";
 
 type SignButtonProps = {
   message: string;
@@ -12,14 +13,16 @@ type SignButtonProps = {
 
 export function SignButton({
   message,
-  buttonLabel = "Sign message",
+  buttonLabel = "Sign",
   disabled = false,
-  showHash = true,
+  showHash = false,
   onSigned,
 }: SignButtonProps) {
   const [lastPayload, setLastPayload] = useState<string | null>(null);
   const actualMessage = message;
   const isMessageBlank = actualMessage.trim().length === 0;
+  const navigate = useNavigate();
+
 
   const hashedMessage = useMemo(() => {
     if (isMessageBlank) {
@@ -38,6 +41,7 @@ export function SignButton({
             : actualMessage;
         setLastPayload(payload);
         onSigned?.(signature, payload);
+        navigate("/proof", { replace: true });
       },
     },
   });
@@ -56,7 +60,7 @@ export function SignButton({
     <div className="sign-message-panel">
       {showHash && (
         <>
-          <p className="sign-message-label">Message hash:</p>
+          <p className="sign-message-label">Statement hash:</p>
           <code className="sign-message-hash">
             {isMessageBlank ? "Enter a message to see its hash" : hashedMessage}
           </code>
@@ -64,7 +68,7 @@ export function SignButton({
       )}
 
       <button type="button" onClick={handleSign} disabled={isButtonDisabled}>
-        {isPending ? "Signing…" : buttonLabel}
+        {isPending ? "Signing…" : disabled ? "Already Signed" : buttonLabel}
       </button>
 
       {data && lastPayload && (

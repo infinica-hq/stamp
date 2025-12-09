@@ -10,7 +10,7 @@ const rootDir = fileURLToPath(new URL(".", import.meta.url));
  * For DEV environment
  * @returns
  */
-const momentPathPlugin = (): PluginOption => {
+const proofPathPlugin = (): PluginOption => {
   const handler: Connect.NextHandleFunction = (req, _res, next) => {
     if (!req.url) {
       next();
@@ -18,15 +18,15 @@ const momentPathPlugin = (): PluginOption => {
     }
 
     const [path, search] = req.url.split("?");
-    if (path === "/moment" || path === "/moment/") {
-      req.url = `/shareable/moment${search ? `?${search}` : ""}`;
+    if (path === "/proof" || path === "/proof/") {
+      req.url = `/shareable/proof${search ? `?${search}` : ""}`;
     }
 
     next();
   };
 
   return {
-    name: "moment-path-rewrite",
+    name: "proof-path-rewrite",
     configureServer(server) {
       server.middlewares.use(handler);
     },
@@ -39,13 +39,13 @@ const momentPathPlugin = (): PluginOption => {
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   base: mode === "production" ? "/hello-world/" : "/",
-  plugins: [momentPathPlugin(), react()],
+  plugins: [proofPathPlugin(), react()],
   appType: "mpa",
   build: {
     rollupOptions: {
       input: {
         main: resolve(rootDir, "index.html"),
-        moment: resolve(rootDir, "shareable/moment.html"),
+        proof: resolve(rootDir, "shareable/proof.html"),
       },
     },
   },

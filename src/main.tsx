@@ -6,6 +6,7 @@ import { WagmiProvider } from "wagmi";
 
 import App from "./App.tsx";
 import { config } from "./wagmi.ts";
+import { SignedProofProvider } from "./state/signedProof.tsx";
 
 import "./index.css";
 
@@ -16,7 +17,9 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter basename={import.meta.env.BASE_URL}>
-          <App />
+          <SignedProofProvider>
+            <App />
+          </SignedProofProvider>
         </BrowserRouter>
       </QueryClientProvider>
     </WagmiProvider>

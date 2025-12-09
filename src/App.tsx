@@ -1,10 +1,12 @@
 import { useEffect } from "react";
-import { NavLink, Route, Routes } from "react-router-dom";
+import { NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { Home } from './ui/home';
-import { Moment } from './ui/moment';
+import { Proof } from './ui/proof';
 import { initMiniApp } from './hooks/useMiniApp';
 
 function App() {
+
+  const location = useLocation();
 
   useEffect(() => {
     initMiniApp()
@@ -13,7 +15,7 @@ function App() {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <h1 className="app-title">Hello!</h1>
+        <h1 className="app-title">Proof Ping</h1>
         <nav className="app-nav">
           <NavLink
             to="/"
@@ -22,27 +24,28 @@ function App() {
               "app-tab" + (isActive ? " app-tab--active" : "")
             }
           >
-            Sign Message 
+            Sign
           </NavLink>
           <NavLink
-            to="/moment"
+            to="/proof"
             className={({ isActive }) =>
               "app-tab" + (isActive ? " app-tab--active" : "")
             }
           >
-            Share a Moment
+            Share
           </NavLink>
 
-          {/* highlight MUST be last */}
           <span className="app-nav-highlight" />
         </nav>
       </header>
 
       <main className="app-main">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/moment" element={<Moment />} />
-        </Routes>
+        <div key={location.pathname} className="page-transition">
+          <Routes location={location}>
+            <Route path="/" element={<Home />} />
+            <Route path="/proof" element={<Proof />} />
+          </Routes>
+        </div>
       </main>
     </div>
   );
