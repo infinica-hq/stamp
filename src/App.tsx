@@ -1,68 +1,53 @@
-import { sdk } from "@farcaster/miniapp-sdk";
 import { useEffect } from "react";
-import { useConnection, useConnect, useConnectors, useSignMessage } from "wagmi";
+import { NavLink, Route, Routes } from "react-router-dom";
+import { Home } from './ui/home';
+import { Moment } from './ui/moment';
+import { initMiniApp } from './hooks/useMiniApp';
 
 function App() {
-  useEffect(() => {
-    const id = setTimeout(() => {
-      sdk.actions.ready();
-    }, 1 * 1000);
 
-    return () => clearTimeout(id);
+  useEffect(() => {
+    initMiniApp()
   }, []);
 
   return (
-    <>
-      <div>Hello World</div>
-      <ConnectMenu />
-    </>
+    <div className="app-shell">
+      <header className="app-header">
+        <h1 className="app-title">Hello!</h1>
+        <nav className="app-nav">
+          <NavLink
+            to="/"
+            end
+            className={({ isActive }) =>
+              "app-tab" + (isActive ? " app-tab--active" : "")
+            }
+          >
+            Sign Message 
+          </NavLink>
+          <NavLink
+            to="/moment"
+            className={({ isActive }) =>
+              "app-tab" + (isActive ? " app-tab--active" : "")
+            }
+          >
+            Share a Moment
+          </NavLink>
+
+          {/* highlight MUST be last */}
+          <span className="app-nav-highlight" />
+        </nav>
+      </header>
+
+      <main className="app-main">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/moment" element={<Moment />} />
+        </Routes>
+      </main>
+    </div>
   );
 }
 
-function ConnectMenu() {
-  const { isConnected, address, } = useConnection();
-  const { connect } = useConnect();
-  const connectors = useConnectors();
 
-  if (isConnected) {
-    return (
-      <>
-        <div>Connected account:</div>
-        <div>{address}</div>
-        <SignButton />
-      </>
-    );
-  }
-
-  return (
-    <button type="button" onClick={() => connect({ connector: connectors[0] })}>
-      Connect
-    </button>
-  );
-}
-
-function SignButton() {
-  const { signMessage, isPending, data, error } = useSignMessage();
-
-  return (
-    <>
-      <button type="button" onClick={() => signMessage({ message: "hello world" })} disabled={isPending}>
-        {isPending ? "Signing..." : "Sign message"}
-      </button>
-      {data && (
-        <>
-          <div>Signature</div>
-          <div>{data}</div>
-        </>
-      )}
-      {error && (
-        <>
-          <div>Error</div>
-          <div>{error.message}</div>
-        </>
-      )}
-    </>
-  );
-}
 
 export default App;
