@@ -6,18 +6,14 @@ import { useDisconnect } from "wagmi";
 import { useEphemeralFlag } from "../hooks/useUtils";
 import { isMiniApp } from "../hooks/useMiniApp";
 import { sdk } from "@farcaster/miniapp-sdk";
-
-
-type SharedPing = {
-  message: string;
-  signature: string;
-  sharedAt?: string;
-  signer?: string;
-};
+import {
+  Claim,
+  encodeSharedProof,
+  decodeSharedProof,
+} from "../hooks/urlEncoding";
 
 export function Proof({ summary = false }) {
   const { proof, setProof } = useSignedProof();
-  const [now, setNow] = useState(() => new Date());
   const { value: showShareToast, trigger: triggerShareToast } = useEphemeralFlag(2000);
   const [shareToastMessage, setShareToastMessage] = useState<string | null>(null);
 
@@ -27,23 +23,11 @@ export function Proof({ summary = false }) {
   const { disconnectAsync } = useDisconnect();
 
   const sharedProof = useMemo(() => {
-    const message = searchParams.get("message");
-    const signature = searchParams.get("signature");
-    const sharedAt = searchParams.get("sharedAt") || undefined;
-    const signer = searchParams.get("signer") || undefined;
-    if (!message || !signature) {
-      return null;
-    }
-
-    return { message, signature, sharedAt, signer } satisfies SharedPing;
+    const encoded = searchParams.get("data");
+    return encoded ? decodeSharedProof(encoded) : null;
   }, [searchParams]);
 
   const [verificationStatus, setVerificationStatus] = useState<"idle" | "verified" | "failed">("idle");
-
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,7 +39,7 @@ export function Proof({ summary = false }) {
       try {
         const result = await verifyMessage({
           address: sharedProof.signer as `0x${string}`,
-          message: sharedProof.message,
+          message: sharedProof.text,
           signature: sharedProof.signature as `0x${string}`,
         });
         if (!cancelled) {
@@ -104,16 +88,21 @@ export function Proof({ summary = false }) {
       return;
     }
 
+    const now = new Date();
+
     const url = new URL(window.location.href);
     url.search = "";
-    url.searchParams.set("message", proof.message);
-    url.searchParams.set("signature", proof.signature);
-    url.searchParams.set("sharedAt", now.toISOString());
-    url.searchParams.set("signer", proof.signer);
+    const payload: Claim = {
+      text: proof.message,
+      signature: proof.signature,
+      doi: now.toISOString(),
+      signer: proof.signer,
+    };
+    url.searchParams.set("data", encodeSharedProof(payload));
     const shareUrl = url.toString();
     const timestamp = `${dateFormatter.format(now)} ${timeFormatter.format(now)}`;
     const shareText = `${proof.message}
-
+Proof Stamp
 Timestamp: ${timestamp}
 Signer: ${proof.signer}
 Signature: ${proof.signature}
@@ -141,7 +130,7 @@ Link: ${shareUrl}`;
     try {
       if (navigator.share) {
         await navigator.share({ title, url: shareUrl, text: shareText });
-        showToast("Share sheet opened");
+        showToast("Sharing opened");
         return;
       }
     } catch {
@@ -151,7 +140,7 @@ Link: ${shareUrl}`;
     try {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(shareText);
-        showToast("Proof copied to clipboard");
+        showToast("Proof copied");
       } else {
         window.prompt("Copy this link:", shareText);
       }
@@ -166,19 +155,29 @@ Link: ${shareUrl}`;
     navigate("/", { replace: true });
   };
 
+  const isValid = verificationStatus === "verified";
+  const isChecking = verificationStatus === "idle";
+
   return (
     <section className="proof-view">
       {!sharedProof &&
         <>
-          <h2>2. Share!</h2>
-          <p>Cast a timestamped proof.</p>
-          <div className="proof-card">
-            <p className="proof-label">Current Timestamp</p>
-            <h2 className="proof-date">{dateFormatter.format(now)}</h2>
-            <p className="proof-time">{timeFormatter.format(now)}</p>
+          <div className="share-hero">
+            <p className="proof-label">Step 2</p>
+            <h2 className="share-title">Publish your proof</h2>
+            <p className="share-lead">
+              Share a link anyone can verify.
+            </p>
+            <div className="share-pill">Verifiable link</div>
+
+          </div>
+
+          <div className="proof-card proof-card--share">
 
             {!proof && (
-              <p className="proof-hint">Sign first to unlock sharing.</p>
+              <p className="proof-hint">
+                Sign once, then share. Technical details are optional.
+              </p>
             )}
 
             <button
@@ -196,11 +195,6 @@ Link: ${shareUrl}`;
               <div className="proof-signed-preview">
                 <p>Proof message</p>
                 <code>{proof.message}</code>
-                <p className="proof-signed-preview-timestamp">
-                  Next ping timestamp:
-                  <br />
-                  <code>{now.toISOString()}</code>
-                </p>
                 <p>
                   Signer:
                   <br />
@@ -218,37 +212,61 @@ Link: ${shareUrl}`;
       }
 
       {sharedProof && (
-        <div className="proof-card proof-card--shared">
-          <p className="proof-label">Shared with you</p>
-          <h3>Verified ping</h3>
-          <p className="shared-proof-message">{sharedProof.message}</p>
-          {sharedProof.signer && (
-            <p className="shared-proof-signer">
-              Claimed signer:
-              <br />
-              <code>{sharedProof.signer}</code>
+        <div className="shared-proof-wrap">
+          <div className="status-banner">
+            <div className={`status-pill ${isValid ? "status-pill--valid" : isChecking ? "status-pill--checking" : "status-pill--invalid"}`}>
+              <span className="status-icon" aria-hidden="true">
+                {isChecking ? "…" : isValid ? "✓" : "✕"}
+              </span>
+              <span className="status-text">
+                {isChecking && "Checking proof"}
+                {isValid && "Valid proof"}
+                {!isValid && !isChecking && "Invalid proof"}
+              </span>
+            </div>
+            <p className="status-subtext">
+              {isChecking
+                ? "Verifying the signature."
+                : isValid
+                  ? "Signature matches the claim."
+                  : "Signature does not match the claim."}
             </p>
-          )}
-          {verificationStatus === "verified" && (
-            <p className="shared-proof-status success">Verified ✅</p>
-          )}
-          {verificationStatus === "failed" && (
-            <p className="shared-proof-status error">Signature mismatch</p>
-          )}
-          {sharedProof.sharedAt && (
-            <p className="shared-proof-timestamp">
-              Timestamp:
-              <br />
-              <code>{sharedProof.sharedAt}</code>
+          </div>
+
+          <div className="proof-card proof-card--shared">
+            <p className="proof-label">Claim</p>
+            <p className={`shared-proof-message ${isValid ? "valid" : isChecking ? "pending" : "invalid"}`}>
+              {sharedProof.text}
             </p>
-          )}
-          <p className="shared-proof-signature">
-            Signature (check with your preferred verifier):
-            <br />
-            <code>{sharedProof.signature}</code>
-          </p>
+
+            <div className="shared-proof-grid">
+              {sharedProof.signer && (
+                <div className="shared-proof-tile">
+                  <p className="proof-label">Claimed by</p>
+                  <code className="shared-proof-mono">{sharedProof.signer}</code>
+                </div>
+              )}
+
+              {sharedProof.doi && (
+                <div className="shared-proof-tile">
+                  <p className="proof-label">Shared at</p>
+                  <code className="shared-proof-mono">{sharedProof.doi}</code>
+                </div>
+              )}
+            </div>
+
+            <details className="tech-details">
+              <summary className="proof-label">See technical details</summary>
+              <p className="shared-proof-signature">
+                Cryptographic Proof:
+                <br />
+                <code>{sharedProof.signature}</code>
+              </p>
+            </details>
+          </div>
         </div>
       )}
+
 
       {proof &&
         <button

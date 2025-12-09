@@ -1,22 +1,26 @@
 {
   "frame": {
-    "name": "Proof Ping",
-    "version": "1",
-    "iconUrl": "https://hello.infinica.xyz/icon.png",
-    "homeUrl": "https://hello.infinica.xyz/",
-    "description": "The base building block for Infinica.",
-    "buttonTitle": "CTA",
-    "splashImageUrl": "https://hello.infinica.xyz/icon.png",
+    "version": "1.0",
+    "name": "Proof Stamp",
+    "homeUrl": "https://stamp.infinica.xyz/",
+    "subtitle": "Turn statements into evidence",
+    "tagline": "Proof for what matters",
+    "description": "Make any important claim verifiable. Prove ownership of wallets or accounts and attach checkable proof to your messages in seconds.",
+    "iconUrl": "https://stamp.infinica.xyz/icon.png",
+    "splashImageUrl": "https://stamp.infinica.xyz/icon.png",
+    "heroImageUrl": "https://stamp.infinica.xyz/icon.png",
     "splashBackgroundColor": "#6200EA",
-    "subtitle": "Subtitle",
-    "primaryCategory": "productivity",
-    "heroImageUrl": "https://hello.infinica.xyz/icon.png",
-    "tags": ["basic", "prove ownership", "miniapp"],
-    "tagline": "Hello World",
-    "ogTitle": "Hello World",
-    "ogDescription": "The base building block for Infinica.",
-    "ogImageUrl": "https://hello.infinica.xyz/icon.png",
-    "castShareUrl": "https://hello.infinica.xyz/compose?text=hello+world"
+    "primaryCategory": "utility",
+    "tags": [
+      "verification",
+      "identity",
+      "ownership",
+      "authenticity",
+      "attestation"
+    ],
+    "ogTitle": "Verify what you own",
+    "ogDescription": "Create verifiable proof for important claims. Link your identity to what you truly own in seconds.",
+    "ogImageUrl": "https://stamp.infinica.xyz/icon.png"
   },
   "accountAssociation": {
     "header": "eyJmaWQiOjE0OTY1NTcsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHhGMmFFZEE1ODM3ZDY1ZjA2NjhFMGY4YjJDRDUwOGEwNzlGZWUwNDAzIn0",

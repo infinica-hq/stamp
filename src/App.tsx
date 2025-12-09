@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { NavLink, Route, Routes, useLocation } from "react-router-dom";
+import { Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { Home } from './ui/home';
 import { Proof } from './ui/proof';
 import { init } from './hooks/useMiniApp';
@@ -15,7 +15,10 @@ function App() {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <h1 className="app-title">Proof Ping</h1>
+        <Link to={"/"}>
+          <h1 className="app-title">Proof Stamp</h1>
+        </Link>
+
         <nav className="app-nav">
           <NavLink
             to="/"

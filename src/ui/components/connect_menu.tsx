@@ -100,7 +100,14 @@ export function ConnectMenu() {
 
         <div className="align-center">
           <p className="connector-status">Connection: {status}</p>
-          {error && <p className="connector-error">❌ {error.message}</p>}
+          {error &&
+            (error?.message.includes("undefined") && <p className="connector-error">❌ No Wallet?</p>)
+            ||
+            (error?.message.includes("rejected") && <p className="connector-error">❌ Why Rejected?</p>)
+            ||
+            error && <p className="connector-error">❌ {error?.message}</p>
+
+          }
         </div>
       </div>
     );
