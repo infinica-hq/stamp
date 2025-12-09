@@ -4,6 +4,8 @@ import { verifyMessage } from "viem";
 import { useSignedProof } from "../state/signedProof";
 import { useDisconnect } from "wagmi";
 import { useEphemeralFlag } from "../hooks/useUtils";
+import { isMiniApp } from "../hooks/useMiniApp";
+import { sdk } from "@farcaster/miniapp-sdk";
 
 
 type SharedPing = {
@@ -16,7 +18,8 @@ type SharedPing = {
 export function Proof({ summary = false }) {
   const { proof, setProof } = useSignedProof();
   const [now, setNow] = useState(() => new Date());
-  const { value: justCopied, trigger: setJustCopied } = useEphemeralFlag(2000);
+  const { value: showShareToast, trigger: triggerShareToast } = useEphemeralFlag(2000);
+  const [shareToastMessage, setShareToastMessage] = useState<string | null>(null);
 
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -117,9 +120,28 @@ Signature: ${proof.signature}
 Link: ${shareUrl}`;
     const title = "Proof Ping";
 
+    const showToast = (message: string) => {
+      setShareToastMessage(message);
+      triggerShareToast();
+    };
+
+    if (await isMiniApp()) {
+      try {
+        const result = await sdk.actions.composeCast({
+          text: shareText,
+          embeds: [shareUrl],
+        });
+        showToast(result?.cast ? "Cast shared on Farcaster" : "Cast composer opened");
+        return;
+      } catch (error) {
+        showToast(`Sorry, failed to compose a Cast! ${error}`);
+      }
+    }
+
     try {
       if (navigator.share) {
         await navigator.share({ title, url: shareUrl, text: shareText });
+        showToast("Share sheet opened");
         return;
       }
     } catch {
@@ -129,7 +151,7 @@ Link: ${shareUrl}`;
     try {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(shareText);
-        setJustCopied();
+        showToast("Proof copied to clipboard");
       } else {
         window.prompt("Copy this link:", shareText);
       }
@@ -168,9 +190,9 @@ Link: ${shareUrl}`;
               {proof ? "Share" : "Sign first"}
             </button>
 
-            {justCopied && <p className="proof-toast">Link copied to clipboard</p>}
+            {showShareToast && shareToastMessage && <p className="proof-toast">{shareToastMessage}</p>}
 
-            {summary && proof && !justCopied && (
+            {summary && proof && !showShareToast && (
               <div className="proof-signed-preview">
                 <p>Proof message</p>
                 <code>{proof.message}</code>

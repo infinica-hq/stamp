@@ -2,14 +2,14 @@ import { useEffect } from "react";
 import { NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { Home } from './ui/home';
 import { Proof } from './ui/proof';
-import { initMiniApp } from './hooks/useMiniApp';
+import { init } from './hooks/useMiniApp';
 
 function App() {
 
   const location = useLocation();
 
   useEffect(() => {
-    initMiniApp()
+    init()
   }, []);
 
   return (
