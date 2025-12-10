@@ -1,0 +1,34 @@
+{
+  "name": "proof-link-codec",
+  "version": "0.1.0",
+  "description": "Tiny helper to CBOR+DEFLATE and base64url encode/decode JSON-safe objects for URL sharing.",
+  "type": "module",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./index.js",
+      "require": "./index.js",
+      "types": "./index.d.ts"
+    }
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "license": "MIT",
+  "keywords": [
+    "base64url",
+    "deflate",
+    "cbor",
+    "url",
+    "encode",
+    "compression"
+  ],
+  "dependencies": {
+    "cbor-x": "^1.6.0",
+    "pako": "^2.1.0"
+  }
+}

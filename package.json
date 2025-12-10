@@ -9,12 +9,15 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "biome check src",
-    "preview": "vite preview"
+    "lint:fix": "biome check --fix src",
+    "preview": "vite preview",
+    "bench:encoding": "node scripts/encodingBench.mjs"
   },
   "dependencies": {
     "@farcaster/miniapp-sdk": "latest",
     "@farcaster/miniapp-wagmi-connector": "latest",
     "@tanstack/react-query": "5.45.1",
+    "proof-link-codec": "file:packages/proof-link-codec",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.10.1",
@@ -23,6 +26,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.8.0",
+    "@types/pako": "^2.0.4",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.2.1",
