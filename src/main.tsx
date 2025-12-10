@@ -5,8 +5,8 @@ import { BrowserRouter } from "react-router-dom";
 import { WagmiProvider } from "wagmi";
 
 import App from "./App.tsx";
-import { config } from "./wagmi.ts";
 import { SignedProofProvider } from "./state/signedProof.tsx";
+import { config } from "./wagmi.ts";
 
 import "./index.css";
 

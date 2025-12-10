@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { hashMessage } from "viem";
 import { useSignMessage } from "wagmi";
-import { useNavigate } from "react-router-dom";
 
 type SignButtonProps = {
   message: string;
@@ -23,7 +23,6 @@ export function SignButton({
   const isMessageBlank = actualMessage.trim().length === 0;
   const navigate = useNavigate();
 
-
   const hashedMessage = useMemo(() => {
     if (isMessageBlank) {
       return "";
@@ -35,10 +34,7 @@ export function SignButton({
   const { signMessage, isPending, data, error } = useSignMessage({
     mutation: {
       onSuccess(signature, variables) {
-        const payload =
-          typeof variables?.message === "string"
-            ? variables.message
-            : actualMessage;
+        const payload = typeof variables?.message === "string" ? variables.message : actualMessage;
         setLastPayload(payload);
         onSigned?.(signature, payload);
         navigate("/proof", { replace: true });
@@ -67,7 +63,7 @@ export function SignButton({
         </>
       )}
 
-      <button type="button" onClick={handleSign} disabled={isButtonDisabled}>
+      <button disabled={isButtonDisabled} onClick={handleSign} type="button">
         {isPending ? "Signing…" : disabled ? "Already Signed" : buttonLabel}
       </button>
 
@@ -83,11 +79,7 @@ export function SignButton({
         </p>
       )}
 
-      {error && (
-        <p className="sign-message-status error">
-          ❌ {error.message}
-        </p>
-      )}
+      {error && <p className="sign-message-status error">❌ {error.message}</p>}
     </div>
   );
 }

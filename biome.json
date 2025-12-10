@@ -1,5 +1,5 @@
 {
-  "root": false,
+  "$schema": "https://biomejs.dev/schemas/1.8.3/schema.json",
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
@@ -22,5 +22,11 @@
       }
     }
   },
-  "assist": { "actions": { "source": { "organizeImports": "on" } } }
+  "assists": {
+    "actions": {
+      "source": {
+        "sortJsxProps": "on"
+      }
+    }
+  }
 }

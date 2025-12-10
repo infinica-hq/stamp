@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import { type ReactNode, createContext, useContext, useEffect, useState } from "react";
 
 export type SignedProof = {
   message: string;
@@ -43,11 +43,7 @@ export function SignedProofProvider({ children }: { children: ReactNode }) {
     }
   }, [proof]);
 
-  return (
-    <SignedProofContext.Provider value={{ proof, setProof }}>
-      {children}
-    </SignedProofContext.Provider>
-  );
+  return <SignedProofContext.Provider value={{ proof, setProof }}>{children}</SignedProofContext.Provider>;
 }
 
 export function useSignedProof() {

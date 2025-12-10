@@ -1,16 +1,14 @@
-import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
-import { useConnection, useConnect, useConnectors } from "wagmi";
-import { SignButton } from "./sign_button";
+import { type KeyboardEvent, useEffect, useMemo, useState } from "react";
+import { useConnect, useConnection, useConnectors } from "wagmi";
+import { useEphemeralFlag, useTruncatedAddress, useTruncatedSignature } from "../../hooks/useUtils";
 import { useSignedProof } from "../../state/signedProof";
-import { useTruncatedSignature, useTruncatedAddress, useEphemeralFlag } from "../../hooks/useUtils";
+import { SignButton } from "./sign_button";
 
 export function ConnectMenu() {
   const { isConnected, address } = useConnection();
   const { connect, isPending, error, status } = useConnect();
   const connectors = useConnectors();
-  const [selectedConnectorId, setSelectedConnectorId] = useState<string | null>(
-    null,
-  );
+  const [selectedConnectorId, setSelectedConnectorId] = useState<string | null>(null);
   const { proof, setProof } = useSignedProof();
   const [showAddressTooltip, setShowAddressTooltip] = useState(false);
   const defaultMessage = "I control this wallet and my Farcaster account.";
@@ -31,7 +29,7 @@ export function ConnectMenu() {
 
   useEffect(() => {
     setShowAddressTooltip(false);
-  }, [address]);
+  }, []);
 
   const selectedConnector = useMemo(() => {
     if (!selectedConnectorId) {
@@ -39,9 +37,8 @@ export function ConnectMenu() {
     }
 
     return (
-      connectors.find(
-        (connector) => connector.uid === selectedConnectorId || connector.id === selectedConnectorId,
-      ) ?? null
+      connectors.find((connector) => connector.uid === selectedConnectorId || connector.id === selectedConnectorId) ??
+      null
     );
   }, [connectors, selectedConnectorId]);
 
@@ -50,7 +47,6 @@ export function ConnectMenu() {
       connect({ connector: selectedConnector });
     }
   };
-
 
   const { value: proofCopied, trigger: triggerProofCopied } = useEphemeralFlag(500);
   const truncatedAddress = useTruncatedAddress(address);
@@ -79,9 +75,9 @@ export function ConnectMenu() {
         <label className="connector-select">
           Choose wallet
           <select
-            value={selectedConnectorId ?? ""}
-            onChange={(event) => setSelectedConnectorId(event.target.value)}
             disabled={!connectors.length || isPending}
+            onChange={(event) => setSelectedConnectorId(event.target.value)}
+            value={selectedConnectorId ?? ""}
           >
             {connectors.map((connector) => {
               const optionValue = connector.uid ?? connector.id;
@@ -94,59 +90,57 @@ export function ConnectMenu() {
           </select>
         </label>
 
-        <button type="button" onClick={handleConnect} disabled={!selectedConnector || isPending}>
+        <button disabled={!selectedConnector || isPending} onClick={handleConnect} type="button">
           {isPending ? "Connecting…" : "Connect"}
         </button>
 
         <div className="align-center">
           <p className="connector-status">Connection: {status}</p>
-          {error &&
-            (error?.message.includes("undefined") && <p className="connector-error">❌ No Wallet?</p>)
-            ||
-            (error?.message.includes("rejected") && <p className="connector-error">❌ Why Rejected?</p>)
-            ||
-            error && <p className="connector-error">❌ {error?.message}</p>
-
-          }
+          {(error?.message?.includes("undefined") && <p className="connector-error">❌ No Wallet?</p>) ||
+            (error?.message?.includes("rejected") && <p className="connector-error">❌ Why Rejected?</p>) ||
+            (error && <p className="connector-error">❌ {error?.message}</p>)}
         </div>
       </div>
     );
   }
+
+  const copyProofToClipboard = () => {
+    if (!proof) return;
+    navigator.clipboard.writeText(proof.signature);
+    triggerProofCopied();
+  };
 
   return (
     <div className="connected-wallet-panel">
       <div className="center-wrap">
         <span className="wallet-address-display">
           <code
-            role="button"
-            tabIndex={0}
+            onBlur={() => setShowAddressTooltip(false)}
             onClick={handleAddressClick}
             onKeyDown={handleAddressKeyDown}
-            onBlur={() => setShowAddressTooltip(false)}
+            tabIndex={0}
           >
             {truncatedAddress}
           </code>
-          {showAddressTooltip && address && (
-            <span className="wallet-address-tooltip">{address}</span>
-          )}
+          {showAddressTooltip && address && <span className="wallet-address-tooltip">{address}</span>}
         </span>
       </div>
       <label className="sign-message-input">
         your Statement
         <textarea
-          value={message}
-          rows={3}
           onChange={(event) => {
             setHasTyped(true);
             setMessage(event.target.value);
           }}
           placeholder="Short claim others can verify"
+          rows={3}
+          value={message}
         />
       </label>
 
       <SignButton
-        message={message}
         disabled={!!proof && message === proof.message}
+        message={message}
         onSigned={(signature, payload) => {
           if (!address) {
             return;
@@ -165,12 +159,9 @@ export function ConnectMenu() {
           <p className="proof-summary-signature">
             Latest signature:
             <br />
-            <code onClick={() => {
-              navigator.clipboard.writeText(proof.signature);
-              triggerProofCopied();
-            }}
-              className="cursor-pointer"
-            >{proofCopied ? "Copied to clipboard" : truncatedSignature}</code>
+            <code className="cursor-pointer" onClick={copyProofToClipboard} onKeyDown={copyProofToClipboard}>
+              {proofCopied ? "Copied to clipboard" : truncatedSignature}
+            </code>
           </p>
         </div>
       )}

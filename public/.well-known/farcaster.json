@@ -11,13 +11,7 @@
     "heroImageUrl": "https://stamp.infinica.xyz/icon.png",
     "splashBackgroundColor": "#6200EA",
     "primaryCategory": "utility",
-    "tags": [
-      "verification",
-      "identity",
-      "ownership",
-      "authenticity",
-      "attestation"
-    ],
+    "tags": ["verification", "identity", "ownership", "authenticity", "attestation"],
     "ogTitle": "Verify what you own",
     "ogDescription": "Create verifiable proof for important claims. Link your identity to what you truly own in seconds.",
     "ogImageUrl": "https://stamp.infinica.xyz/icon.png"

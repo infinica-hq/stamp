@@ -1,15 +1,14 @@
 import { useEffect } from "react";
 import { Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
-import { Home } from './ui/home';
-import { Proof } from './ui/proof';
-import { init } from './hooks/useMiniApp';
+import { init } from "./hooks/useMiniApp";
+import { Home } from "./ui/home";
+import { Proof } from "./ui/proof";
 
 function App() {
-
   const location = useLocation();
 
   useEffect(() => {
-    init()
+    init();
   }, []);
 
   return (
@@ -20,21 +19,10 @@ function App() {
         </Link>
 
         <nav className="app-nav">
-          <NavLink
-            to="/"
-            end
-            className={({ isActive }) =>
-              "app-tab" + (isActive ? " app-tab--active" : "")
-            }
-          >
+          <NavLink className={({ isActive }) => `app-tab ${isActive ?? "app-tab--active"}`} end to="/">
             Sign
           </NavLink>
-          <NavLink
-            to="/proof"
-            className={({ isActive }) =>
-              "app-tab" + (isActive ? " app-tab--active" : "")
-            }
-          >
+          <NavLink className={({ isActive }) => `app-tab ${isActive ?? "app-tab--active"}`} to="/proof">
             Share
           </NavLink>
 
@@ -43,17 +31,15 @@ function App() {
       </header>
 
       <main className="app-main">
-        <div key={location.pathname} className="page-transition">
+        <div className="page-transition" key={location.pathname}>
           <Routes location={location}>
-            <Route path="/" element={<Home />} />
-            <Route path="/proof" element={<Proof />} />
+            <Route element={<Home />} path="/" />
+            <Route element={<Proof />} path="/proof" />
           </Routes>
         </div>
       </main>
     </div>
   );
 }
-
-
 
 export default App;
