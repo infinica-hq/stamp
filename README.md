@@ -1,23 +1,62 @@
-This is a [Vite](https://vitejs.dev) project bootstrapped with [`@farcaster/create-mini-app`](https://github.com/farcasterxyz/miniapps/tree/main/packages/create-mini-app).
+## Proof Stamp (miniapp)
 
-For documentation and guides, visit [miniapps.farcaster.xyz](https://miniapps.farcaster.xyz/docs/getting-started).
+_Proof Stamp_ lets you create a **tiny, tamper-proof receipt** for anything you want to state publicly.
 
-## `farcaster.json`
+You write a short message, your crypto wallet confirms “Yes, this really came from me,” and you get a link you can share anywhere.
 
-The `/.well-known/farcaster.json` is served from the [public
-directory](https://vite.dev/guide/assets) and can be updated by editing
-`./public/.well-known/farcaster.json`.
+Anyone who opens that link sees your message, the wallet that approved it, the exact time, and a **green checkmark** if everything is authentic.
 
-You can also use the `public` directory to serve a static image for `splashBackgroundImageUrl`.
+They don’t need a wallet or any technical knowledge to view it.
 
-## Frame Embed
+Think of it like **digitally notarizing a sentence**—instantly, from your phone or laptop.
 
-Add a the `fc:frame` in `index.html` to make your root app URL sharable in feeds:
+### How it works (simple view)
 
-```html
-  <head>
-    <!--- other tags --->
-    <meta name="fc:frame" content='{"version":"next","imageUrl":"https://placehold.co/900x600.png?text=Frame%20Image","button":{"title":"Open","action":{"type":"launch_frame","name":"App Name","url":"https://app.com"}}}' /> 
-  </head>
+```mermaid
+
+flowchart TD
+
+  A[You write a statement] --> B[You confirm it with your wallet]
+  B --> C[Proof Stamp creates a link]
+  C --> D[You share the link anywhere]
+  D --> E[Others open it and see a verified receipt]
+
 ```
 
+### Why you might use it
+
+- **Public commitments**.
+  Example: “I will release the new version next Tuesday.” A Proof Stamp adds a timestamp and authenticity so others know it wasn’t edited later.
+
+- **Ownership proof in collaborations**.
+  Example: A partner wants to confirm that you truly control a certain wallet before working with you.
+
+- **Support or account recovery**.
+  Example: A service asks you to prove you own an account without taking screenshots or sending sensitive information.
+
+- **Reliable record-keeping**.
+  Example: Saving an important statement with a verifiable date, just like bookmarking a receipt.
+
+## Contributing
+
+### Project setup
+
+- Package manager: `pnpm` (v10+). Install deps with `pnpm install`.
+- Dev server: `pnpm dev`
+- Type-check + build: `pnpm build`
+- Lint: `pnpm lint`
+- Encoding benchmark: `pnpm run bench:encoding`
+
+### Code guidelines
+
+- Written in TypeScript + React; keep components focused and strongly typed.
+- Reuse helpers in `src/hooks/urlEncoding.ts` for anything related to share-link formatting.
+- Keep proof payloads `small and versioned` so old links never break.
+- Use ASCII in source; comment only when something isn’t immediately clear.
+
+### Pull request checklist
+
+- [ ] `pnpm lint` and `pnpm build` both pass.
+- [ ] Tests updated for any logic changes (especially encoding/decoding).
+- [ ] Confirm that old and new share links still decode and validate.
+- [ ] Update docs for any behavior or UI changes.
