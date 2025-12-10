@@ -1,16 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { sdk } from "@farcaster/miniapp-sdk";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { verifyMessage } from "viem";
-import { useSignedProof } from "../state/signedProof";
 import { useDisconnect } from "wagmi";
-import { useEphemeralFlag } from "../hooks/useUtils";
+import { type Claim, decodeSharedProof, encodeSharedProof } from "../hooks/urlEncoding";
 import { isMiniApp } from "../hooks/useMiniApp";
-import { sdk } from "@farcaster/miniapp-sdk";
-import {
-  Claim,
-  encodeSharedProof,
-  decodeSharedProof,
-} from "../hooks/urlEncoding";
+import { useEphemeralFlag } from "../hooks/useUtils";
+import { useSignedProof } from "../state/signedProof";
 
 export function Proof({ summary = false }) {
   const { proof, setProof } = useSignedProof();
@@ -19,12 +15,39 @@ export function Proof({ summary = false }) {
 
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const [sharedProof, setSharedProof] = useState<Claim | null>(null);
 
   const { disconnectAsync } = useDisconnect();
+  const formatUtc = (isoString: string): string => {
+    const date = new Date(isoString);
+    if (Number.isNaN(date.getTime())) {
+      return isoString;
+    }
+    const pad = (value: number) => String(value).padStart(2, "0");
+    return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())} UTC`;
+  };
 
-  const sharedProof = useMemo(() => {
+  useEffect(() => {
+    let cancelled = false;
     const encoded = searchParams.get("data");
-    return encoded ? decodeSharedProof(encoded) : null;
+
+    if (!encoded) {
+      setSharedProof(null);
+      return undefined;
+    }
+
+    const parseSharedProof = async () => {
+      const decoded = await decodeSharedProof(encoded);
+      if (!cancelled) {
+        setSharedProof(decoded);
+      }
+    };
+
+    parseSharedProof();
+
+    return () => {
+      cancelled = true;
+    };
   }, [searchParams]);
 
   const [verificationStatus, setVerificationStatus] = useState<"idle" | "verified" | "failed">("idle");
@@ -62,27 +85,6 @@ export function Proof({ summary = false }) {
     };
   }, [sharedProof]);
 
-  const dateFormatter = useMemo(
-    () =>
-      new Intl.DateTimeFormat(undefined, {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      }),
-    [],
-  );
-
-  const timeFormatter = useMemo(
-    () =>
-      new Intl.DateTimeFormat(undefined, {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      }),
-    [],
-  );
-
   const handleShare = async () => {
     if (!proof) {
       return;
@@ -98,16 +100,11 @@ export function Proof({ summary = false }) {
       doi: now.toISOString(),
       signer: proof.signer,
     };
-    url.searchParams.set("data", encodeSharedProof(payload));
+    url.searchParams.set("data", await encodeSharedProof(payload));
     const shareUrl = url.toString();
-    const timestamp = `${dateFormatter.format(now)} ${timeFormatter.format(now)}`;
     const shareText = `${proof.message}
-Proof Stamp
-Timestamp: ${timestamp}
-Signer: ${proof.signer}
-Signature: ${proof.signature}
-Link: ${shareUrl}`;
-    const title = "Proof Ping";
+Proof link: ${shareUrl}`;
+    const title = "Proof Stamp";
 
     const showToast = (message: string) => {
       setShareToastMessage(message);
@@ -160,32 +157,21 @@ Link: ${shareUrl}`;
 
   return (
     <section className="proof-view">
-      {!sharedProof &&
+      {!sharedProof && (
         <>
-          <div className="share-hero">
-            <p className="proof-label">Step 2</p>
-            <h2 className="share-title">Publish your proof</h2>
-            <p className="share-lead">
-              Share a link anyone can verify.
-            </p>
+          <div className="step-intro">
+            <span>
+              <p className="proof-label">Step 2</p>
+              <h2>Publish your proof</h2>
+            </span>
+            <p>Share a link anyone can verify.</p>
             <div className="share-pill">Verifiable link</div>
-
           </div>
 
           <div className="proof-card proof-card--share">
+            {!proof && <p className="proof-hint">Sign once, then share. Technical details are optional.</p>}
 
-            {!proof && (
-              <p className="proof-hint">
-                Sign once, then share. Technical details are optional.
-              </p>
-            )}
-
-            <button
-              type="button"
-              className="proof-share-button"
-              onClick={handleShare}
-              disabled={!proof}
-            >
+            <button className="proof-share-button" disabled={!proof} onClick={handleShare} type="button">
               {proof ? "Share" : "Sign first"}
             </button>
 
@@ -209,13 +195,15 @@ Link: ${shareUrl}`;
             )}
           </div>
         </>
-      }
+      )}
 
       {sharedProof && (
         <div className="shared-proof-wrap">
           <div className="status-banner">
-            <div className={`status-pill ${isValid ? "status-pill--valid" : isChecking ? "status-pill--checking" : "status-pill--invalid"}`}>
-              <span className="status-icon" aria-hidden="true">
+            <div
+              className={`status-pill ${isValid ? "status-pill--valid" : isChecking ? "status-pill--checking" : "status-pill--invalid"}`}
+            >
+              <span aria-hidden="true" className="status-icon">
                 {isChecking ? "…" : isValid ? "✓" : "✕"}
               </span>
               <span className="status-text">
@@ -250,7 +238,7 @@ Link: ${shareUrl}`;
               {sharedProof.doi && (
                 <div className="shared-proof-tile">
                   <p className="proof-label">Shared at</p>
-                  <code className="shared-proof-mono">{sharedProof.doi}</code>
+                  <code className="shared-proof-mono">{formatUtc(sharedProof.doi)}</code>
                 </div>
               )}
             </div>
@@ -267,16 +255,11 @@ Link: ${shareUrl}`;
         </div>
       )}
 
-
-      {proof &&
-        <button
-          type="button"
-          className="proof-disconnect-button"
-          onClick={handleDisconnect}
-        >
+      {proof && (
+        <button className="proof-disconnect-button" onClick={handleDisconnect} type="button">
           Disconnect wallet
         </button>
-      }
+      )}
     </section>
   );
 }
